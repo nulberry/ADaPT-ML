@@ -1,3 +1,5 @@
+[![status](https://joss.theoj.org/papers/e846e08311cee3886d33101209166f4c/status.svg)](https://joss.theoj.org/papers/e846e08311cee3886d33101209166f4c)
+
 # ADaPT-ML #
 ## A Data Programming Template for Machine Learning ##
 
@@ -32,11 +34,18 @@ ADaPT-ML is composed of a number of open-source tools and libraries, as shown in
 - [FastAPI v0.68.1](https://fastapi.tiangolo.com/)
   - endpoints, Pydantic, requests, JSON
 
-Now that you are familiar with the concepts, terminology, and tools that make up ADaPT-ML, let's look at the example use case included in this repository. Once you have an understanding of how ADaPT-ML works and want to get started with your own use case, please refer to these instructions for [testing](test/testing.md) ADaPT-ML on your machine, and the [usage guidelines](./usage.md), including how to contribute to this project.
+Now that you are familiar with the concepts, terminology, and tools that make up ADaPT-ML, let's look at the example use case included in this repository. Once you have an understanding of how ADaPT-ML works and want to get started with your own use case, please refer to these instructions for [testing](test/README.md) ADaPT-ML on your machine, and the [usage guidelines](./usage.md), including how to contribute to this project.
 
 ## Example Usage ##
 
 Our Example Use Case is to develop a model that can predict whether a data point is about a cat, dog, bird, horse, or snake. Although intuitively this is purely a multilabel task where it is reasonable to assume that one or more animals could be mentioned in one datapoint, this task has been divided into a multiclass setting, where there is only one possible class that the data point can belong to, and a multilabel setting, where one data point can belong to one or many classes, to demonstrate how to handle both tasks (it is not necessary for you to also divide your new classification task into multiclass and multilabel settings). 
+
+All of the directories and files mentioned in the following steps exist in the locations specified in the `.env` file of this repository. To follow along using the various UIs, complete [Step 1](usage.md#step-1-review-system-requirements) and these [tests](test/README.md) to get ADaPT-ML running on your host machine, and go to the following addresses in your web browser of choice:
+1. `localhost:4200` for CrateDB
+2. `localhost:8080` for Label Studio
+3. `localhost:5000` for data programming MLflow
+4. `localhost:5001` for modelling MLflow
+5. `localhost:81/docs` for FastAPI
 
 ### Step 1: obtain and featurize some data ###
 
@@ -56,7 +65,7 @@ Many of them have both text and images that can provide information for more acc
 - **1d** has a reference to cats in its textual component with a :pouting_cat: emoji and hashtags. Its image component is an obvious picture of a cat.
 - **1e** has a textual component that has the keyword "snake", but it is actually not about the animal. The image component does not on its own provide information that is related to snakes.
 
-This diagram demonstrates the process of setting up the example use case data in a table in CrateDB so that it is ready for ADaPT-ML. As long as each table has these essential columns, you can combine multiple tables to create your training and testing data:
+This diagram demonstrates the process of setting up the example use case data in a table in CrateDB so that it is ready for ADaPT-ML. You can refer to [this script](example_data/example_data_import.py) to see how this was accomplished in detail. As long as each table has these essential columns, you can combine multiple tables to create your training and testing data:
 - column **1f** is the _essential_ `id` column: your data table must have this column to work with ADaPT-ML. It can be any combination of numbers and letters.
 - column **1g** has the unprocessed, raw text component of each datapoint. Note the column name `txt`: this is the column used in Label Studio for annotation, so this name appears in the [Labeling Config file](./label-studio/config/example_config.xml): in `<Text name="txt" value="$txt"/>` and `<Choices name="topic" toName="txt" choice="multiple" showInLine="false">`
 - column **1h** has the first featurization step -- features that will be used by the Labeling Functions. Note the column name `txt_clean_lemma`: this column name is specified in our [data programming MLflow endpoint](./data-programming/label/example.py) for this example task, with no loader function: `LF_FEATURES = {'txt_clean_lemma': None}`. For this use case, as mentioned before, our Labeling Functions will have access to the text in _1g_ that has been lemmatized. Consider, though, a more rich set of features for the text component such as word embeddings, emoji normalization, hashtag splitting, and so on. If our datapoint had an image component, then we could pull out features such as the prediction from an image classifier that has been trained on one or more categories included in our task, the output from an image classifier that can detect language embedded within the image, and so on. The output from all of these different featurization methods would be held in different columns in this table.
@@ -70,7 +79,9 @@ We are now ready to annotate a sample of data in Label Studio! Because we only h
 3. Perform an empirical evaluation of the Labeling Functions and Label Model
 4. Validate the End Model
 
-The first step to annotate data using Label Studio is to sample it from CrateDB. The sampling method implemented currently in ADaPT-ML is a random N, so this commannd was used to sample all 30 datapoints for the multiclass and multilabel settings:
+The first step to annotate data using Label Studio is to set up the project using the Label Studio UI. For this example use case, we enter `localhost:8080` (if you changed the port in `docker-compose.yml`, replace `8080` with what you entered) in a web browser. Create an account, and set up the project (we simply called it "example").
+
+The second step is to sample some data from CrateDB. The sampling method implemented currently in ADaPT-ML is a random N, so this commannd was used to sample all 30 datapoints for the multiclass and multilabel settings:
 ```shell
 docker exec label-studio-dev python ./ls/sample_tasks.py example_data txt 30 example --filename example_tasks.json
 ```

@@ -1,6 +1,12 @@
 #!/bin/bash -e
 
-docker-compose --env-file .env --profile data_programming up -d
+if [ "$RUNNER_OS" = "Windows" ]; then
+  echo "using Windows compose file"
+  docker-compose --file ./test/docker-compose-windows.yml --env-file .env --profile data_programming up -d
+else
+  docker-compose --env-file .env --profile data_programming up -d
+fi
+#docker-compose --env-file .env --profile data_programming up -d
 while docker-compose ps | grep -i "starting"
   do
     echo "Waiting for MLflow databases (5 sec)..."
@@ -15,5 +21,6 @@ then
   exit 1
 fi
 echo "Startup complete."
+docker-compose ps
 
 docker exec dp-mlflow sh -c ". ~/.bashrc && python /test/dp-test.py"

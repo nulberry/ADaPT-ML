@@ -1,12 +1,31 @@
 ## Installation and Usage Guidelines ##
 
-Follow these guidelines to set up ADaPT-ML on your machine and to see how you can add new classification tasks to the system. Each header links to the appropriate file created for the [Example Use Case](./README.md) so you can see an example of these instructions implemented.
+Follow these guidelines to set up ADaPT-ML on your machine and to see how you can add new classification tasks to the system. Each header links to the appropriate file created for the [Example Use Case](./README.md#example-usage) so you can see an example of these instructions implemented.
 
-### Step 1: Install Docker and Docker Compose ###
-[Docker](https://docs.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) are required to use ADaPT-ML. Please follow the links for each and review the installation instructions, and make sure that they are installed on the host machine where you will be forking and cloning this repository to.
+### Step 1: Review System Requirements ###
+
+#### Linux and MacOS Setup ####
+1. Download and Install Docker and Docker Compose:
+   - [Docker Engine v19.03.0+](https://docs.docker.com/)
+   - [Docker Compose v1 1.29.2](https://docs.docker.com/compose/) (This software has not been tested with a newer version of Docker Compose)
+3. Ensure CrateDB will pass the bootstrap checks by following [these instructions](https://crate.io/docs/crate/howtos/en/latest/admin/bootstrap-checks.html#linux), as the host system must be configured correctly to use CrateDB with Docker. 
+
+#### Windows Setup ####
+1. Download and Install Docker Desktop (Docker Compose is included):
+   - [Docker Desktop](https://docs.docker.com/desktop/windows/install/)
+   - If prompted to do so, download and install the [Linux kernel update package](https://docs.microsoft.com/en-us/windows/wsl/install-manual#step-4---download-the-linux-kernel-update-package). Complete steps 4-6 in the linked article.
+3. Ensure CrateDB will pass the bootstrap checks by following [these instructions](https://stackoverflow.com/questions/69214301/using-docker-desktop-for-windows-how-can-sysctl-parameters-be-configured-to-per), copied below:
+   1. In your Windows `%userprofile%` directory (usually `C:\Users\<username>`), create or edit the file `.wslconfig` with the following:
+   ```
+   [wsl2]
+   kernelCommandLine = "sysctl.vm.max_map_count=262144"
+   ```
+   2. Exit any WSL instance through Command Prompt, `wsl --shutdown`, and restart your computer.
+
+#### **It is recommended that at this point, you test ADaPT-ML by following these [instructions](./test/README.md). Additionally, if you came straight here without following the [Example Use Case](./README.md#example-usage), please consider doing so now so that you can see the following steps implemented.** ####
 
 ### Step 2: [Set up the environment variables for Docker Compose](./.env) ###
-**It is recommended that at this point, you test ADaPT-ML by following these [instructions](./test/testing.md)**. After testing, make a copy of the `.env` file in the repository's root directory and call it `.env.dev`. Review the `.env.dev` file, and edit the variables according to their descriptions.
+Make a copy of the `.env` file in the repository's root directory and call it `.env.dev`. Review the `.env.dev` file, and edit the variables according to their descriptions.
 
 ### Step 3: Changes to [label-studio](./label-studio) ###
 
@@ -75,7 +94,7 @@ modelling-mlflow-db       /entrypoint.sh mysqld            Up (healthy)   3306/t
 modelling-mlflow-deploy   /start.sh                        Up             0.0.0.0:80->80/tcp,:::80->80/tcp                            
 modelling-mlflow-server   mlflow server --backend-st ...   Up             0.0.0.0:5001->5000/tcp,:::5001->5000/tcp 
 ```
-Then it's ready! Import your data into a table in CrateDB and refer to the [Example Usage](./README.md) for an example of how to manipulate the data so that it's ready for ADaPT-ML. How you load the data, featurize it, and sample from it to create your unlabeled training data is up to you -- ADaPT-ML does not perform these tasks. However, there may be an opportunity for certain sampling methods to become a part of the system; see [Contributing](#community-guidelines).
+Then it's ready! Import your data into a table in CrateDB and refer to the [Example Usage](./README.md) and this [script](./example_data/example_data_import.py) for an example of how to manipulate the data so that it's ready for ADaPT-ML. How you load the data, featurize it, and sample from it to create your unlabeled training data is up to you -- ADaPT-ML does not perform these tasks. However, there may be an opportunity for certain sampling methods to become a part of the system; see [Contributing](#community-guidelines).
 
 ### Optional: Create a dev/test dataset using Label Studio ###
 
@@ -198,10 +217,6 @@ You now have predicted labels for your data and can perform any downstream analy
 
 ## Additional Installation Notes: ##
 
-If you want to use CrateDB on your host machine but are experiencing issues, please go through these bootstrap checks,
-as the host system must be configured correctly to use CrateDB with Docker.
-https://crate.io/docs/crate/howtos/en/latest/admin/bootstrap-checks.html
-
 Check this out if you are hosting CrateDB or another SQLAlchemy-based database on a remote server:
 https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_sql.html
 
@@ -211,6 +226,7 @@ https://pytorch.org/docs/stable/cuda.html
 
 ## Community Guidelines ##
 
+### Contribution ###
 Follow these guidelines to see where you can contribute to expand the system's functionality and adaptability. The following items are on ADaPT-ML's "wish list":
 - a configuration file that can be used by the label-studio, data-programming, and modelling projects to automatically create the classification task directory for label studio, a coding schema for annotators, the Enum object that stores values that the Labeling Functions use, the ModelResponse schema for deployment, and anything else where it is important to have consistency and maintainability in the classification task name and classes.
 - a main UI with links to all of the different UIs, buttons that can run commands to sample data and run end-to-end experiments by returning the `EXP_ID` and `RUN_ID` within mlruns for a successful and performant Label Model and End Model, forms for submitting new classification tasks, an interface that makes writing labeling functions easier, etc.
@@ -218,3 +234,8 @@ Follow these guidelines to see where you can contribute to expand the system's f
 - implement classification algorithms in addition to the MLP.
 - determine the best method for updating the CrateDB tables with worker labels, gold labels, Label Model labels and probabilities, and End Model predictions and probabilities.
 - a separate project for creating a flexible feature store.
+
+Please [open an issue](https://github.com/U-Alberta/ADaPT-ML/issues) if you would like to propose an approach to adding these features.
+
+### Report Issues and Seek Support ###
+If you find a problem with the software or if you need help with any of the steps in this document or the testing document, please [open an issue](https://github.com/U-Alberta/ADaPT-ML/issues) and I will try to address your concerns.

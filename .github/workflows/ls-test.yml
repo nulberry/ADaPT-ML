@@ -1,4 +1,6 @@
-name: ADaPT-ML Label Studio CI
+# This is a workflow containing an automated test suite covering the core functionality of the software.
+
+name: ADaPT-ML Label Studio CI for Linux, Mac, and Windows
 
 on: [push]
 
@@ -6,20 +8,32 @@ jobs:
 
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-2022 ]
+
+    defaults:
+      run:
+        shell: bash
 
     steps:
     - uses: actions/checkout@v2
 
-    # Building and setting up the containers
-    - name: Build the docker-compose stack
-      run: docker-compose -f docker-compose.yml --profile label up -d
-    - name: Give database a chance to start up
-      run: sleep 30
-    - name: Check running containers
-      run: docker ps -a
+    - name: If this is the MacOS runner, install Docker
+      if: matrix.os == 'macos-latest'
+      run: bash ./test/install-docker.sh
 
-    # Testing out the modelling functionality
+    - name: If this is the Windows runner, switch Docker daemons
+      if: matrix.os == 'windows-2022'
+      shell: pwsh
+      run: '& $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon'
+
+    - name: Build the docker-compose profile
+      run: bash ./test/start-ls.sh
+
     - name: Test 1 -- sample tasks
       run: docker exec label-studio-dev python ./ls/sample_tasks.py example_data txt 30 example --filename example_tasks.json
     - name: Check the run results

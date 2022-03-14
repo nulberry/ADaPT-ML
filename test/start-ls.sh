@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+#if [ "$RUNNER_OS" = "Windows" ]; then
+#  docker-compose --file ./test/docker-compose-windows.yml --env-file .env --profile label up -d
+#else
+#  docker-compose --env-file .env --profile label up -d
+#fi
 docker-compose --env-file .env --profile label up -d
 
 echo "Letting CrateDB start up..."
@@ -12,5 +17,4 @@ then
   exit 1
 fi
 echo "Startup complete."
-
-docker exec label-studio-dev python /test/ls-test.py
+docker-compose ps

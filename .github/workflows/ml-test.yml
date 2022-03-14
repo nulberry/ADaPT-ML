@@ -1,6 +1,6 @@
 # This is a workflow containing an automated test suite covering the core functionality of the software.
 
-name: ADaPT-ML Modelling CI
+name: ADaPT-ML Modelling CI for Linux, Mac, and Windows
 
 on: [push]
 
@@ -8,10 +8,39 @@ jobs:
 
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-2022 ]
+
+    defaults:
+      run:
+        shell: bash
 
     steps:
     - uses: actions/checkout@v2
 
+    - name: If this is the MacOS runner, install Docker
+      if: matrix.os == 'macos-latest'
+      run: bash ./test/install-docker.sh
+
+    - name: If this is the Windows runner, switch Docker daemons
+      if: matrix.os == 'windows-2022'
+      shell: pwsh
+      run: '& $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon'
+
     - name: Build the docker-compose profile and test modelling
       run: bash ./test/start-m.sh
+
+#    - name: Build the docker-compose profile
+#      run: docker-compose --env-file .env --profile modelling up -d
+#
+#    - name: Give database a chance to start up
+#      env:
+#        TIMER: ${{ matrix.timer }}
+#      run: $TIMER 30
+#
+#    - name: Test modelling
+#      run: docker exec modelling-mlflow sh -c ". ~/.bashrc && python /test/ml-test.py"
