@@ -80,8 +80,18 @@ TRAIN_PARAMS.update(
         }
     }[TRAIN_PARAMS['solver']])
 
-REGISTERED_MODEL_NAME = '{}_MLP'.format('_'.join(parsed_args.features))
 ARTIFACT_PATH = 'mlp'
+
+FEATURE_FUNCTIONS = {
+    'use_median': np.load,
+    'use_average': np.load,
+    'roberta_median': np.load,
+    'roberta_average': np.load,
+    'roberta_norm_median': np.load,
+    'roberta_norm_average': np.load
+}
+FEATURES = {f: FEATURE_FUNCTIONS[f] for f in parsed_args.features}
+REGISTERED_MODEL_NAME = '{}_MLP'.format('-'.join(FEATURES.keys()))
 
 
 def common_metrics(y_true: np.ndarray, y_gold: np.ndarray, y_pred: np.ndarray, y_prob: np.ndarray) -> dict:
@@ -122,13 +132,13 @@ def binary_functions(eval_type, ravel_y_true: [str], ravel_y_pred: [str],
                      y_prob_pos: np.ndarray, pos_label: str) -> dict:
     return {
         '{} DET curve'.format(eval_type): eval.det_curve(ravel_y_true, y_prob_pos,
-                                                           pos_label=pos_label),
+                                                         pos_label=pos_label),
         '{} F1 binary'.format(eval_type): eval.f1_score(ravel_y_true, ravel_y_pred,
-                                                          pos_label=pos_label),
+                                                        pos_label=pos_label),
         '{} hamming loss binary'.format(eval_type): eval.hamming_loss(ravel_y_true, ravel_y_pred,
-                                                                        pos_label=pos_label),
+                                                                      pos_label=pos_label),
         '{} jaccard score binary'.format(eval_type): eval.jaccard_score(ravel_y_true, ravel_y_pred,
-                                                                          pos_label=pos_label)
+                                                                        pos_label=pos_label)
     }
 
 
@@ -220,7 +230,7 @@ def main():
         logging.info("Loading training and testing sets, and feature sets")
         train_df, test_df = data.load(parsed_args.train_path, parsed_args.test_path)
         data.save_df(train_df, TRAIN_DF_FILENAME, TRAIN_DF_HTML_FILENAME)
-        x_train = data.get_train_features(train_df, parsed_args.features)
+        x_train = data.get_train_features(train_df, FEATURES)
         data.save_training_features(x_train, X_TRAIN_FILENAME)
 
         logging.info("Encoding labels and determining multiclass or multilabel ...")
@@ -239,10 +249,10 @@ def main():
         if train_is_multiclass and test_is_multiclass:
             ravel_y_train = data.ravel_inverse_binarized_labels(mlb, y_train)
             mlp.fit(x_train, ravel_y_train)
-            mlp_model = LookupClassifier(mlb, mlp, parsed_args.features, used_inverse_labels=True)
+            mlp_model = LookupClassifier(mlb, mlp, FEATURES, used_inverse_labels=True)
         else:
             mlp.fit(x_train, y_train)
-            mlp_model = LookupClassifier(mlb, mlp, parsed_args.features)
+            mlp_model = LookupClassifier(mlb, mlp, FEATURES)
         tracking.save_model(x_train, mlp_model, REGISTERED_MODEL_NAME, ARTIFACT_PATH)
 
         logging.info("Predicting test ...")

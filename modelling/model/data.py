@@ -6,7 +6,7 @@ import sys
 import os
 import logging
 from sklearn.preprocessing import MultiLabelBinarizer
-from model_objs import SQL_QUERY, DATABASE_IP
+from model_objs import SQL_QUERY, DATABASE_IP, get_feature_vectors
 
 
 def load(train_path: str, test_path: str) -> (pd.DataFrame, pd.DataFrame):
@@ -39,7 +39,6 @@ def binarize_labels(y_train: [[str]], y_test: [[str]], y_gold: [[str]] = None) -
     :param y_train: list of labels such as [['cat'],['dog','bird']]
     :param y_test: list of labels from label model such as [['cat'],['dog','bird']]
     :param y_gold: list of labels from manual annotation such as [['cat'],['dog','bird']]
-
     """
     mlb = MultiLabelBinarizer()
     y_train = mlb.fit_transform(y_train)
@@ -75,25 +74,10 @@ def check_if_multiclass(y_train: [[int]], y_test: [[int]]) -> (bool, bool):
     return train_is_multiclass, test_is_multiclass
 
 
-def get_train_features(train_df: pd.DataFrame, features: [str]) -> np.ndarray:
-    features_df = pd.DataFrame()
-    for tbl in train_df.table_name.unique():
-        tbl_df = train_df.loc[(train_df.table_name == tbl)]
-        tbl_f_df = pd.read_sql(SQL_QUERY.format(column=', '.join(['id'] + features),
-                                                table=tbl,
-                                                ids=str(tuple(tbl_df.id.tolist()))),
-                               DATABASE_IP,
-                               chunksize=100)
-        for data in tbl_f_df:
-            features_df = features_df.append(data, ignore_index=True)
-    id_f_df = pd.merge(train_df, features_df, on='id')
+def get_train_features(train_df: pd.DataFrame, features: dict) -> np.ndarray:
+    x = get_feature_vectors(train_df, features)
     logging.info("Training features loaded. Here's a peek:")
-    logging.info(id_f_df.head())
-    feature_arrays = [np.array(id_f_df[feature].tolist()) for feature in features]
-    try:
-        x = np.concatenate(feature_arrays, axis=1)
-    except np.AxisError:
-        x = feature_arrays[0]
+    logging.info(x)
     return x
 
 
