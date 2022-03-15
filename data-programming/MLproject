@@ -40,7 +40,7 @@ entry_points:
             device: {type: string, default: cpu}
             trld: {type: float, default: 0.5}
             encoder: {type: str, default: roberta}
-        command: "python ./label/example.py
+        command: "python ./label/framing.py
         --task {task}
         --dev_data {dev_data}
         --n_epochs {n_epochs}

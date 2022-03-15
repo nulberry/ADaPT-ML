@@ -34,6 +34,7 @@ SQL_QUERY = """
     """
 
 
+
 class LookupClassifier(mlflow.pyfunc.PythonModel):
 
     def __init__(self, mlb, classifier, features, used_inverse_labels=False, can_predict_probs=True):
@@ -63,6 +64,7 @@ class LookupClassifier(mlflow.pyfunc.PythonModel):
             for data in tbl_f_df:
                 features_df = features_df.append(data, ignore_index=True)
         id_f_df = pd.merge(id_df, features_df, on='id')
+
         feature_arrays = [np.array(id_f_df[feature].tolist()) for feature in self.features]
         try:
             x = np.concatenate(feature_arrays, axis=1)

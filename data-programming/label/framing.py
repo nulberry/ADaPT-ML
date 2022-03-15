@@ -1,13 +1,19 @@
 import os
+import numpy as np
 
 from label import run, parser
 from label.lfs import FramingLabels
 from label.lfs.framing import get_lfs
 
+
+def load_embeddings(filename):
+    return np.load(filename)
+
+
 REGISTERED_MODEL_NAME = 'FramingLabelModel'
 LF_FEATURES = {
-    'txt_clean_roberta': None,
-    'txt_clean_use': None,
+    'txt_clean_roberta': load_embeddings,
+    'txt_clean_use': load_embeddings,
     }
 DEV_ANNOTATIONS_PATH = os.path.join('/annotations', 'framing', 'gold_df.pkl')
 

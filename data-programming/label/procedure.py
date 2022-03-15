@@ -1,5 +1,6 @@
 import logging
 import multiprocessing
+import sys
 
 import numpy as np
 import pandas as pd
@@ -59,8 +60,11 @@ def load_lf_info(id_df, features) -> pd.DataFrame:
 
     # join the dataframes so that the collected features line up with the ids.
     lf_info_df = pd.merge(id_df, data_df, on='id')
-    assert id_df.shape[0] == lf_info_df.shape[0]
-
+    try:
+        assert id_df.shape[0] == lf_info_df.shape[0]
+    except AssertionError:
+        logging.info("Some datapoints' LF features didn't load properly.", id_df.shape, lf_info_df.shape)
+        sys.exit(1)
     # convert to the right data types
     for column in features:
         if features[column] is not None:
