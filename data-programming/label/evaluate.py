@@ -125,7 +125,7 @@ def get_dev_df(gold_df_path) -> pd.DataFrame:
     """
     Load the gold DataFrame that has compiled all workers' labels into one gold label set.
     """
-    gold_df = pd.read_pickle(gold_df_path)
+    gold_df = pd.read_pickle(gold_df_path).drop_duplicates(subset=['id'], ignore_index=True)
     gold_df['gold_label'] = gold_df['gold_label'].apply(lambda x: list(x))
     logging.info("Gold df loaded. Here's a peek:")
     logging.info(gold_df.head())

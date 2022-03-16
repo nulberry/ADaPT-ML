@@ -55,6 +55,6 @@ def filter_data():
     df3 = pd.read_sql(query3, 'crate://localhost:4200')
     df4 = pd.read_sql(query4, 'crate://localhost:4200')
     df5 = pd.read_sql(query5, 'crate://localhost:4200')
-    df = pd.concat([df0, df1, df2, df3, df4, df5], ignore_index=True)
+    df = pd.concat([df0, df1, df2, df3, df4, df5], ignore_index=True).drop_duplicates(subset=['id'])
 
     return df

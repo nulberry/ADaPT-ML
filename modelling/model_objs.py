@@ -45,8 +45,7 @@ def get_feature_vectors(id_df: pd.DataFrame, features: dict):
                                                 ids=ids),
                                DATABASE_IP,
                                chunksize=100)
-        for data in tbl_f_df:
-            features_df = features_df.append(data, ignore_index=True)
+        features_df = pd.concat([features_df] + [df for df in tbl_f_df], ignore_index=True)
     id_f_df = pd.merge(id_df, features_df, on='id')
     for feature in features:
         if features[feature] is not None:

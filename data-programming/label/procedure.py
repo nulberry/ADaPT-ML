@@ -55,15 +55,14 @@ def load_lf_info(id_df, features) -> pd.DataFrame:
                                                       ids=str(tuple(table_df.id.tolist()))),
                                      DATABASE_IP,
                                      chunksize=100)
-        for data in lf_features_df:
-            data_df = data_df.append(data, ignore_index=True)
+        data_df = pd.concat([data_df] + [df for df in lf_features_df], ignore_index=True)
 
     # join the dataframes so that the collected features line up with the ids.
-    lf_info_df = pd.merge(id_df, data_df, on='id')
+    lf_info_df = pd.merge(id_df, data_df, on='id').drop_duplicates(subset=['id'])
     try:
         assert id_df.shape[0] == lf_info_df.shape[0]
     except AssertionError:
-        logging.info("Some datapoints' LF features didn't load properly.", id_df.shape, lf_info_df.shape)
+        logging.info("Some datapoints' LF features didn't load properly. Check for duplicates.")
         sys.exit(1)
     # convert to the right data types
     for column in features:
