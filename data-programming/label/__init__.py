@@ -16,6 +16,8 @@ parser.add_argument('--task', default='multiclass', type=str, choices=('multicla
                     help='classification setting (multiclass or multilabel)')
 parser.add_argument('--dev_data', default=0, type=int, choices=(0, 1),
                     help='Use labeled development data for training and evaluation?')
+parser.add_argument('--filter', default=1, type=int, choices=(0, 1),
+                    help='Filter out abstain data points?')
 parser.add_argument('--n_epochs', default=1000, type=int,
                     help='the number of epochs to train the Label Model '
                     '(where each epoch is a single optimization step)')

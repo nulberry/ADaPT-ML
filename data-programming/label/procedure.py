@@ -124,7 +124,7 @@ def train_label_model(L_train: np.ndarray, train_params: dict, device: str, y_de
     return label_model
 
 
-def apply_label_preds(df, label_matrix: np.ndarray, label_model: LabelModel, labels, task) -> pd.DataFrame:
+def apply_label_preds(df, label_matrix: np.ndarray, label_model: LabelModel, labels, task, filter) -> pd.DataFrame:
     """
     This function behaves differently depending on whether the task is in a multiclass or multilabel setting. First,
     datapoints in the train DataFrame that were not labeled by the Label Model are filtered out. If the setting is
@@ -139,7 +139,11 @@ def apply_label_preds(df, label_matrix: np.ndarray, label_model: LabelModel, lab
     :return: a pd.DataFrame containing the columns id, table, label, label_probs
     """
     # filter out abstain datapoints
-    filtered_df, probs_array = filter_df(df, label_matrix, label_model)
+    if filter:
+        df, probs_array = filter_df(df, label_matrix, label_model)
+    else:
+        logging.info("Not filtering out abstain data points ...")
+        probs_array = label_model.predict_proba(label_matrix)
 
     # get the list of labels predicted to be true and probabilities corresponding to each possible label
     probs_list = probs_array.tolist()
@@ -155,7 +159,7 @@ def apply_label_preds(df, label_matrix: np.ndarray, label_model: LabelModel, lab
         for probs in probs_list:
             chosen = find_knee(labels, label_values, probs)
             pred_labels.append(chosen)
-    return add_labels(filtered_df, pred_labels, probs_list)
+    return add_labels(df, pred_labels, probs_list)
 
 
 def find_knee(labels, label_values, probs) -> [str]:

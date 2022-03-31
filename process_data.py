@@ -43,11 +43,16 @@ import pickle
 import emoji
 import re
 
+PATH_TO_EMBEDDINGS = "/media/andrea/Data/thesis/embeddings"
+
 pd.set_option('display.max_columns', None)
 np.set_printoptions(threshold=np.prod((10, 1050)))
 
-use_embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
-roberta_model = SentenceTransformer('roberta-large-nli-stsb-mean-tokens')
+# use_embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
+# roberta_model = SentenceTransformer('roberta-large-nli-stsb-mean-tokens')
+
+mpnet_model = SentenceTransformer('all-mpnet-base-v2')
+climate_model = SentenceTransformer('GPL/climate-fever-distilbert-tas-b-gpl-self_miner')
 
 rule_poli = re.compile(r'[pP][oO][lL][iI]')
 rule_govt = re.compile(r'[gG][oO][vV][tT]')
@@ -296,23 +301,30 @@ element_list = [
     "worsening environmental and air pollution",
     "climate change is a global problem and affects everyone"
 ]
-element_use = use_embed(element_list).numpy()
-element_roberta = roberta_model.encode(element_list)
-element_roberta_norm = tf.keras.utils.normalize(element_roberta, axis=-1, order=2)
+# element_use = use_embed(element_list).numpy()
+# element_roberta = roberta_model.encode(element_list)
+# element_roberta_norm = tf.keras.utils.normalize(element_roberta, axis=-1, order=2)
+element_mpnet = mpnet_model.encode(element_list)
+element_climate = climate_model.encode(element_list)
+
 frames = {
     "element_id": element_id_list,
     "frame": frame_list,
     "element_txt": element_list,
-    "element_use": element_use.tolist(),
-    "element_roberta": element_roberta.tolist(),
-    "element_roberta_norm": element_roberta_norm.tolist()
+    # "element_use": element_use.tolist(),
+    # "element_roberta": element_roberta.tolist(),
+    # "element_roberta_norm": element_roberta_norm.tolist()
+    "element_mpnet": element_mpnet.tolist(),
+    "element_climate": element_climate.tolist()
 }
 
 element_df = pd.DataFrame(frames)
 element_df.to_sql('frame_elements', 'crate://localhost:4200', if_exists='append', index=False, dtype={
-    'element_use': ARRAY(Float),
-    'element_roberta': ARRAY(Float),
-    'element_roberta_norm': ARRAY(Float)
+    # 'element_use': ARRAY(Float),
+    # 'element_roberta': ARRAY(Float),
+    # 'element_roberta_norm': ARRAY(Float)
+    "element_mpnet": ARRAY(Float),
+    "element_climate": ARRAY(Float)
 })
 
 ids = []
@@ -323,137 +335,181 @@ screen_name = []
 bio = []
 txt = []
 processed = []
-use_embeddings = []
-use_median = []
-use_avg = []
-roberta_embeddings = []
-roberta_median = []
-roberta_avg = []
-roberta_embeddings_norm = []
-roberta_median_norm = []
-roberta_avg_norm = []
+# use_embeddings = []
+# use_median = []
+# use_avg = []
+# roberta_embeddings = []
+# roberta_median = []
+# roberta_avg = []
+# roberta_embeddings_norm = []
+# roberta_median_norm = []
+# roberta_avg_norm = []
+mpnet_embeddings = []
+mpnet_median = []
+mpnet_average = []
+climate_embeddings = []
+climate_median = []
+climate_average = []
+
+excluded = 0
 
 with open('sample.jsonl', 'r') as infile:
     for line in tqdm(infile, desc='tweets'):
-        start_time = time.time()
-        tweet_dict = json.loads(line)
-        tweet = Tweet(tweet_dict)
-        if tweet.user_entered_text != '' and tweet.lang == 'en':
-            ids.append(tweet.id)
-            table.append('climate_tweets')
-            split.append('sample')
-            created_at_datetime.append(tweet.created_at_datetime)
-            screen_name.append(tweet.screen_name)
-            bio.append(tweet.bio)
-            txt.append(tweet.user_entered_text)
-            p = phrase_tokenize(tweet.user_entered_text)
-            processed.append(json.dumps(p))
-            s = [p[s]['phrase'] for s in p]
-            ue = use_embed(s).numpy()
-            use_embeddings.append(np.array_repr(ue))
-            # use_embeddings.append(ue.tolist())
+        try:
+            start_time = time.time()
+            tweet_dict = json.loads(line)
+            tweet = Tweet(tweet_dict)
+            if tweet.user_entered_text != '' and tweet.lang == 'en':
+                ids.append(tweet.id)
+                table.append('climate_tweets')
+                split.append('sample')
+                created_at_datetime.append(tweet.created_at_datetime)
+                screen_name.append(tweet.screen_name)
+                bio.append(tweet.bio)
+                txt.append(tweet.user_entered_text)
+                p = phrase_tokenize(tweet.user_entered_text)
+                processed.append(json.dumps(p))
+                s = [p[s]['phrase'] for s in p]
 
-            use_median.append(np.array_repr(np.median(ue, axis=0)))
-            # use_median.append(np.median(ue, axis=0).tolist())
+                # ue = use_embed(s).numpy()
+                # use_embeddings.append(np.array_repr(ue))
+                # use_embeddings.append(ue.tolist())
+                # use_median.append(np.array_repr(np.median(ue, axis=0)))
+                # use_median.append(np.median(ue, axis=0).tolist())
+                # use_avg.append(np.array_repr(np.average(ue, axis=0)))
+                # use_avg.append(np.average(ue, axis=0).tolist())
+                # rob = roberta_model.encode(s)
+                # roberta_embeddings.append(np.array_repr(rob))
+                # roberta_embeddings.append(rob.tolist())
+                # print(rob.shape)
+                # rob_med = np.median(rob, axis=0)
+                # roberta_median.append(np.array_repr(rob_med))
+                # roberta_median.append(rob_med.tolist())
+                # print(rob_med.shape)
+                # rob_avg = np.average(rob, axis=0)
+                # print(rob_avg.shape)
+                # roberta_avg.append(np.array_repr(rob_avg))
+                # roberta_avg.append(rob_avg.tolist())
+                # rob_norm = tf.keras.utils.normalize(rob, axis=-1, order=2)
+                # print(rob_norm.shape)
+                # roberta_embeddings_norm.append(np.array_repr(rob_norm))
+                # rob_med_norm = tf.keras.utils.normalize(rob_med, axis=-1, order=2).flatten()
+                # print(rob_med_norm.shape)
+                # roberta_median_norm.append(np.array_repr(rob_med_norm))
+                # rob_avg_norm = tf.keras.utils.normalize(rob_avg, axis=-1, order=2).flatten()
+                # roberta_avg_norm.append(np.array_repr(rob_avg_norm))
+                # print(rob_avg_norm.shape)
 
-            use_avg.append(np.array_repr(np.average(ue, axis=0)))
-            # use_avg.append(np.average(ue, axis=0).tolist())
+                me = mpnet_model.encode(s)
+                me_med = np.median(me, axis=0)
+                me_avg = np.average(me, axis=0)
+                mpnet_embeddings.append('/embeddings/txt_clean_mpnet/{}.npy'.format(tweet.id))
+                mpnet_median.append('/embeddings/mpnet_median/{}.npy'.format(tweet.id))
+                mpnet_average.append('/embeddings/mpnet_average/{}.npy'.format(tweet.id))
+                np.save(os.path.join(PATH_TO_EMBEDDINGS, 'txt_clean_mpnet/{}.npy'.format(tweet.id)), me)
+                np.save(os.path.join(PATH_TO_EMBEDDINGS, 'mpnet_median/{}.npy'.format(tweet.id)), me_med)
+                np.save(os.path.join(PATH_TO_EMBEDDINGS, 'mpnet_average/{}.npy'.format(tweet.id)), me_avg)
 
-            rob = roberta_model.encode(s)
-            roberta_embeddings.append(np.array_repr(rob))
-            # roberta_embeddings.append(rob.tolist())
-            # print(rob.shape)
+                ce = climate_model.encode(s)
+                ce_med = np.median(ce, axis=0)
+                ce_avg = np.average(ce, axis=0)
+                climate_embeddings.append('/embeddings/txt_clean_climate/{}.npy'.format(tweet.id))
+                climate_median.append('/embeddings/climate_median/{}.npy'.format(tweet.id))
+                climate_average.append('/embeddings/climate_average/{}.npy'.format(tweet.id))
+                np.save(os.path.join(PATH_TO_EMBEDDINGS, 'txt_clean_climate/{}.npy'.format(tweet.id)), ce)
+                np.save(os.path.join(PATH_TO_EMBEDDINGS, 'climate_median/{}.npy'.format(tweet.id)), ce_med)
+                np.save(os.path.join(PATH_TO_EMBEDDINGS, 'climate_average/{}.npy'.format(tweet.id)), ce_avg)
 
-            rob_med = np.median(rob, axis=0)
-            roberta_median.append(np.array_repr(rob_med))
-            # roberta_median.append(rob_med.tolist())
-            # print(rob_med.shape)
+            if len(ids) == 50:
+                tweets_df = pd.DataFrame({
+                    'id': ids,
+                    'table_name': table,
+                    'split': split,
+                    'created_at_datetime': created_at_datetime,
+                    'screen_name': screen_name,
+                    'bio': bio,
+                    'txt': txt,
+                    'txt_clean_sentences': processed,
+                    # 'txt_clean_use': use_embeddings,
+                    # 'use_median': use_median,
+                    # 'use_average': use_avg,
+                    # 'txt_clean_roberta': roberta_embeddings,
+                    # 'roberta_median': roberta_median,
+                    # 'roberta_average': roberta_avg,
+                    # 'txt_clean_roberta_norm': roberta_embeddings_norm,
+                    # 'roberta_norm_median': roberta_median_norm,
+                    # 'roberta_norm_average': roberta_avg_norm
+                    'txt_clean_mpnet': mpnet_embeddings,
+                    'mpnet_median': mpnet_median,
+                    'mpnet_average': mpnet_average,
+                    'txt_clean_climate': climate_embeddings,
+                    'climate_median': climate_median,
+                    'climate_average': climate_average
+                })
+                # tweets_df['txt_clean_roberta'].apply(check_array_size)
+                # tweets_df['txt_clean_roberta_norm'].apply(check_array_size)
+                tweets_df.to_sql('climate_tweets', 'crate://localhost:4200', if_exists='append', index=False,
+                                 dtype={'created_at_datetime': DateTime,
+                                        'txt_clean_sentences': Object})
+                ids = []
+                table = []
+                split = []
+                created_at_datetime = []
+                screen_name = []
+                bio = []
+                txt = []
+                processed = []
+                # use_embeddings = []
+                # use_median = []
+                # use_avg = []
+                # roberta_embeddings = []
+                # roberta_median = []
+                # roberta_avg = []
+                # roberta_embeddings_norm = []
+                # roberta_median_norm = []
+                # roberta_avg_norm = []
+                mpnet_embeddings = []
+                mpnet_median = []
+                mpnet_average = []
+                climate_embeddings = []
+                climate_median = []
+                climate_average = []
 
-            rob_avg = np.average(rob, axis=0)
-            # print(rob_avg.shape)
-            roberta_avg.append(np.array_repr(rob_avg))
-            # roberta_avg.append(rob_avg.tolist())
+                end_time = time.time()
+                print("total time taken this loop: ", end_time - start_time)
+        except:
+            print("Could not process tweet.")
+            excluded += 1
 
-            rob_norm = tf.keras.utils.normalize(rob, axis=-1, order=2)
-            # print(rob_norm.shape)
-            roberta_embeddings_norm.append(np.array_repr(rob_norm))
-
-            rob_med_norm = tf.keras.utils.normalize(rob_med, axis=-1, order=2).flatten()
-            # print(rob_med_norm.shape)
-            roberta_median_norm.append(np.array_repr(rob_med_norm))
-
-            rob_avg_norm = tf.keras.utils.normalize(rob_avg, axis=-1, order=2).flatten()
-            roberta_avg_norm.append(np.array_repr(rob_avg_norm))
-            # print(rob_avg_norm.shape)
-
-        if len(ids) == 50:
-            tweets_df = pd.DataFrame({
-                'id': ids,
-                'table_name': table,
-                'split': split,
-                'created_at_datetime': created_at_datetime,
-                'screen_name': screen_name,
-                'bio': bio,
-                'txt': txt,
-                'txt_clean_sentences': processed,
-                'txt_clean_use': use_embeddings,
-                'use_median': use_median,
-                'use_average': use_avg,
-                'txt_clean_roberta': roberta_embeddings,
-                'roberta_median': roberta_median,
-                'roberta_average': roberta_avg,
-                'txt_clean_roberta_norm': roberta_embeddings_norm,
-                'roberta_norm_median': roberta_median_norm,
-                'roberta_norm_average': roberta_avg_norm
-            })
-            tweets_df['txt_clean_roberta'].apply(check_array_size)
-            tweets_df['txt_clean_roberta_norm'].apply(check_array_size)
-            tweets_df.to_sql('climate_tweets', 'crate://localhost:4200', if_exists='append', index=False,
-                             dtype={'created_at_datetime': DateTime,
-                                    'txt_clean_sentences': Object})
-            ids = []
-            table = []
-            split = []
-            created_at_datetime = []
-            screen_name = []
-            bio = []
-            txt = []
-            processed = []
-            sentences = []
-            use_embeddings = []
-            use_median = []
-            use_avg = []
-            roberta_embeddings = []
-            roberta_median = []
-            roberta_avg = []
-            roberta_embeddings_norm = []
-            roberta_median_norm = []
-            roberta_avg_norm = []
-
-        end_time = time.time()
-        print("total time taken this loop: ", end_time - start_time)
-
-    tweets_df = pd.DataFrame({'id': ids,
-                              'table_name': table,
-                              'split': split,
-                              'created_at_datetime': created_at_datetime,
-                              'screen_name': screen_name,
-                              'bio': bio,
-                              'txt': txt,
-                              'txt_clean_sentences': processed,
-                              'txt_clean_use': use_embeddings,
-                              'use_median': use_median,
-                              'use_average': use_avg
-                              # 'txt_clean_roberta': roberta_embeddings,
-                              # 'roberta_median': roberta_median,
-                              # 'roberta_average': roberta_avg,
-                              # 'txt_clean_roberta_norm': roberta_embeddings_norm,
-                              # 'roberta_median_norm': roberta_median_norm,
-                              # 'roberta_average_norm': roberta_avg_norm
-                              })
+    tweets_df = pd.DataFrame({
+        'id': ids,
+        'table_name': table,
+        'split': split,
+        'created_at_datetime': created_at_datetime,
+        'screen_name': screen_name,
+        'bio': bio,
+        'txt': txt,
+        'txt_clean_sentences': processed,
+        # 'txt_clean_use': use_embeddings,
+        # 'use_median': use_median,
+        # 'use_average': use_avg,
+        # 'txt_clean_roberta': roberta_embeddings,
+        # 'roberta_median': roberta_median,
+        # 'roberta_average': roberta_avg,
+        # 'txt_clean_roberta_norm': roberta_embeddings_norm,
+        # 'roberta_norm_median': roberta_median_norm,
+        # 'roberta_norm_average': roberta_avg_norm
+        'txt_clean_mpnet': mpnet_embeddings,
+        'mpnet_median': mpnet_median,
+        'mpnet_average': mpnet_average,
+        'txt_clean_climate': climate_embeddings,
+        'climate_median': climate_median,
+        'climate_average': climate_average
+    })
     # tweets_df['txt_clean_roberta'].apply(check_array_size)
     # tweets_df['txt_clean_roberta_norm'].apply(check_array_size)
-    # print(tweets_df)
     tweets_df.to_sql('climate_tweets', 'crate://localhost:4200', if_exists='append', index=False,
                      dtype={'created_at_datetime': DateTime,
                             'txt_clean_sentences': Object})
+
+print("# tweets excluded: {}".format(excluded))
