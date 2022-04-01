@@ -42,7 +42,7 @@ entry_points:
             parallel: {type: int, default: 0}
             device: {type: string, default: cpu}
             trld: {type: float, default: 0.5}
-            encoder: {type: str, default: roberta}
+            encoder: {type: str, default: mpnet}
         command: "python ./label/framing.py
         --task {task}
         --dev_data {dev_data}

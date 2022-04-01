@@ -301,31 +301,38 @@ element_list = [
     "worsening environmental and air pollution",
     "climate change is a global problem and affects everyone"
 ]
+element_mpnet = []
+element_climate = []
 # element_use = use_embed(element_list).numpy()
 # element_roberta = roberta_model.encode(element_list)
 # element_roberta_norm = tf.keras.utils.normalize(element_roberta, axis=-1, order=2)
-element_mpnet = mpnet_model.encode(element_list)
-element_climate = climate_model.encode(element_list)
 
 frames = {
     "element_id": element_id_list,
     "frame": frame_list,
     "element_txt": element_list,
-    # "element_use": element_use.tolist(),
-    # "element_roberta": element_roberta.tolist(),
-    # "element_roberta_norm": element_roberta_norm.tolist()
-    "element_mpnet": element_mpnet.tolist(),
-    "element_climate": element_climate.tolist()
 }
-
 element_df = pd.DataFrame(frames)
-element_df.to_sql('frame_elements', 'crate://localhost:4200', if_exists='append', index=False, dtype={
+
+for row in element_df.itertuples(index=False):
+    e_mpnet = mpnet_model.encode(row.element_txt)
+    e_climate = climate_model.encode(row.element_txt)
+    filename = '{}_{}.npy'.format(row.frame, row.element_id)
+    element_mpnet.append('/embeddings/element_mpnet/{}'.format(filename))
+    element_climate.append('/embeddings/element_climate/{}'.format(filename))
+    np.save(os.path.join(PATH_TO_EMBEDDINGS, 'element_mpnet/{}'.format(filename)), e_mpnet)
+    np.save(os.path.join(PATH_TO_EMBEDDINGS, 'element_climate/{}'.format(filename)), e_climate)
+
+element_df['element_mpnet'] = element_mpnet
+element_df['element_climate'] = element_climate
+# element_df.to_sql('frame_elements', 'crate://localhost:4200', if_exists='append', index=False, dtype={
     # 'element_use': ARRAY(Float),
     # 'element_roberta': ARRAY(Float),
     # 'element_roberta_norm': ARRAY(Float)
-    "element_mpnet": ARRAY(Float),
-    "element_climate": ARRAY(Float)
-})
+    # "element_mpnet": ARRAY(Float),
+    # "element_climate": ARRAY(Float)
+# })
+element_df.to_sql('frame_elements', 'crate://localhost:4200', if_exists='append', index=False)
 
 ids = []
 table = []

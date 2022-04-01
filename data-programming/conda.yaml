@@ -14,6 +14,7 @@ dependencies:
   - pip:
     - snorkel==0.9.7
     - pyyaml
+    - sentence-transformers
     - mlflow
     - dask[complete]>=2.1.0,<3.0.0
     - pymysql

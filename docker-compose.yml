@@ -108,7 +108,7 @@ services:
     profiles:
       - data_programming
       - dev
-    image: nullberry/adapt-ml-dp:latest
+    image: nullberry/adapt-ml-dp:dev
     container_name: dp-mlflow
     networks:
       - dp_network
