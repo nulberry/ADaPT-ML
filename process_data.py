@@ -46,8 +46,8 @@ import re
 start_time = time.time()
 PATH_TO_EMBEDDINGS = os.environ['EMBEDDINGS_PATH']
 
-pd.set_option('display.max_columns', None)
-np.set_printoptions(threshold=np.prod((10, 1050)))
+# pd.set_option('display.max_columns', None)
+# np.set_printoptions(threshold=np.prod((10, 1050)))
 
 # use_embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
 # roberta_model = SentenceTransformer('roberta-large-nli-stsb-mean-tokens')
@@ -360,10 +360,11 @@ climate_median = []
 climate_average = []
 
 excluded = 0
-tweet_files = ['climate_train.jsonl', 'climate_test.jsonl', 'climate_valid.jsonl']
-for file in tweet_files:
-    with open(file, 'r') as infile:
-        for line in tqdm(infile, desc=file):
+splits = ['train', 'test', 'valid']
+for split in splits:
+    filename = "climate_{}.jsonl".format(split)
+    with open(filename, 'r') as infile:
+        for line in tqdm(infile, desc=split):
             try:
                 tweet_dict = json.loads(line)
                 tweet = Tweet(tweet_dict)
