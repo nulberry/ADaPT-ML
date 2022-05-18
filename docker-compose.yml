@@ -120,15 +120,22 @@ services:
       - ${DP_DATA_PATH}/unlabeled_data:/unlabeled_data
       - ${DP_DATA_PATH}/tmp_artifacts:/tmp_artifacts
       - ${EMBEDDINGS_PATH}:/embeddings
+      - ${TWEETS_PATH}:/tweets
       - ./data-programming/label:/code/label
       - ./data-programming/MLproject:/code/MLproject
       - ./data-programming/conda.yaml:/code/conda.yaml
       - ./test:/test
+      - ./process_data.py:/code/process_data.py
     environment:
       - MLFLOW_TRACKING_URI=${DP_MLFLOW_TRACKING_URI}
       - DATABASE_IP=${DATABASE_IP}
     stdin_open: true
     tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+              - capabilities: [ "gpu" ]
 
   m_db:
     profiles:
@@ -187,7 +194,7 @@ services:
       - ${MODELLING_DATA_PATH}/mlruns:/code/mlruns
       - ${DP_DATA_PATH}/mlruns:/dp_mlruns
       - ${MODELLING_DATA_PATH}/tmp_artifacts:/tmp_artifacts
-      - ${EMBEDDINGS_PATH}:/embeddings
+#      - ${EMBEDDINGS_PATH}:/embeddings
       - ./modelling/model:/code/model
       - ./modelling/model_objs.py:/code/model_objs.py
       - ./modelling/MLproject:/code/MLproject
@@ -211,7 +218,7 @@ services:
       - deploy_network
     volumes:
       - ${MODELLING_DATA_PATH}/mlruns:/mlruns
-      - ${EMBEDDINGS_PATH}:/embeddings
+#      - ${EMBEDDINGS_PATH}:/embeddings
       - ./modelling/app:/app
       - ./modelling/model_objs.py:/app/model_objs.py
     environment:

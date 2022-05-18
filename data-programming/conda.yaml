@@ -4,10 +4,10 @@ channels:
   - conda-forge
   - pytorch
 dependencies:
-  - python==3.8
+#  - python==3.8
 #  - networkx>=2.2,<2.6
-  - numpy>=1.16.5,<1.20.0
-  - jupyter==1.0.0
+#  - numpy>=1.16.5,<1.20.0
+#  - jupyter==1.0.0
   - torchvision
   - kneed
   - pip>19.0
@@ -16,7 +16,7 @@ dependencies:
     - pyyaml
     - sentence-transformers
     - mlflow
-    - dask[complete]>=2.1.0,<3.0.0
+#    - dask[complete]>=2.1.0,<3.0.0
     - pymysql
     - SQLAlchemy>=1.0.0
     - geojson
