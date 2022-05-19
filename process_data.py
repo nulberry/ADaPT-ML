@@ -380,6 +380,7 @@ def process_climate_tweets():
     tweet_id_set = set()
     tweet_txt_set = set()
 
+    included = 0
     excluded = 0
     # splits = ['train', 'test', 'valid']
     with open('/tweets/climate.jsonl', 'r') as infile:
@@ -428,6 +429,8 @@ def process_climate_tweets():
                         np.save(os.path.join(PATH_TO_EMBEDDINGS, 'climate', filename), ce)
                         np.save(os.path.join(PATH_TO_EMBEDDINGS, 'climate_median', filename), ce_med)
                         np.save(os.path.join(PATH_TO_EMBEDDINGS, 'climate_average', filename), ce_avg)
+
+                        included += 1
                         # ue = use_embed(s).numpy()
                         # use_embeddings.append(np.array_repr(ue))
                         # use_embeddings.append(ue.tolist())
@@ -513,42 +516,45 @@ def process_climate_tweets():
                     climate_embeddings = []
                     climate_median = []
                     climate_average = []
+
             except:
                 print("Error: Could not process tweet.")
                 excluded += 1
 
-        tweets_df = pd.DataFrame({
-            'id': ids,
-            'table_name': table,
-            # 'split': split,
-            'created_at_datetime': created_at_datetime,
-            'screen_name': screen_name,
-            'bio': bio,
-            'txt': txt,
-            'txt_clean': processed_txt,
-            'txt_clean_sentences': processed,
-            # 'txt_clean_use': use_embeddings,
-            # 'use_median': use_median,
-            # 'use_average': use_avg,
-            # 'txt_clean_roberta': roberta_embeddings,
-            # 'roberta_median': roberta_median,
-            # 'roberta_average': roberta_avg,
-            # 'txt_clean_roberta_norm': roberta_embeddings_norm,
-            # 'roberta_norm_median': roberta_median_norm,
-            # 'roberta_norm_average': roberta_avg_norm
-            'mpnet': mpnet_embeddings,
-            'mpnet_median': mpnet_median,
-            'mpnet_average': mpnet_average,
-            'climate': climate_embeddings,
-            'climate_median': climate_median,
-            'climate_average': climate_average
-        })
-        # tweets_df['txt_clean_roberta'].apply(check_array_size)
-        # tweets_df['txt_clean_roberta_norm'].apply(check_array_size)
-        tweets_df.to_sql('climate_tweets', 'crate://localhost:4200', if_exists='append', index=False,
-                         dtype={'created_at_datetime': DateTime,
-                                'txt_clean_sentences': Object})
+        if ids:
+            tweets_df = pd.DataFrame({
+                'id': ids,
+                'table_name': table,
+                # 'split': split,
+                'created_at_datetime': created_at_datetime,
+                'screen_name': screen_name,
+                'bio': bio,
+                'txt': txt,
+                'txt_clean': processed_txt,
+                'txt_clean_sentences': processed,
+                # 'txt_clean_use': use_embeddings,
+                # 'use_median': use_median,
+                # 'use_average': use_avg,
+                # 'txt_clean_roberta': roberta_embeddings,
+                # 'roberta_median': roberta_median,
+                # 'roberta_average': roberta_avg,
+                # 'txt_clean_roberta_norm': roberta_embeddings_norm,
+                # 'roberta_norm_median': roberta_median_norm,
+                # 'roberta_norm_average': roberta_avg_norm
+                'mpnet': mpnet_embeddings,
+                'mpnet_median': mpnet_median,
+                'mpnet_average': mpnet_average,
+                'climate': climate_embeddings,
+                'climate_median': climate_median,
+                'climate_average': climate_average
+            })
+            # tweets_df['txt_clean_roberta'].apply(check_array_size)
+            # tweets_df['txt_clean_roberta_norm'].apply(check_array_size)
+            tweets_df.to_sql('climate_tweets', 'crate://localhost:4200', if_exists='append', index=False,
+                             dtype={'created_at_datetime': DateTime,
+                                    'txt_clean_sentences': Object})
 
+    print("# tweets included: {}".format(included))
     print("# tweets excluded: {}".format(excluded))
 
 
