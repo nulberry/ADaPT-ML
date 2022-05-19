@@ -120,12 +120,10 @@ services:
       - ${DP_DATA_PATH}/unlabeled_data:/unlabeled_data
       - ${DP_DATA_PATH}/tmp_artifacts:/tmp_artifacts
       - ${EMBEDDINGS_PATH}:/embeddings
-      - ${TWEETS_PATH}:/tweets
       - ./data-programming/label:/code/label
       - ./data-programming/MLproject:/code/MLproject
       - ./data-programming/conda.yaml:/code/conda.yaml
       - ./test:/test
-      - ./process_data.py:/code/process_data.py
     environment:
       - MLFLOW_TRACKING_URI=${DP_MLFLOW_TRACKING_URI}
       - DATABASE_IP=${DATABASE_IP}
@@ -226,6 +224,16 @@ services:
       - MULTICLASS_EXAMPLE_MODEL_PATH=${MULTICLASS_EXAMPLE_MODEL_PATH}
       - MULTILABEL_EXAMPLE_MODEL_PATH=${MULTILABEL_EXAMPLE_MODEL_PATH}
       - CLIMATE_FRAMES_MODEL_PATH=${CLIMATE_FRAMES_MODEL_PATH}
+
+  data:
+    profiles:
+      - dev
+    image: nullberry/framing-data:latest
+    container_name: framing-data
+    volumes:
+      - ${EMBEDDINGS_PATH}:/embeddings
+      - ${TWEETS_PATH}:/tweets
+      - ./process_data.py:/code/process_data.py
 
 networks:
   ls_network:
