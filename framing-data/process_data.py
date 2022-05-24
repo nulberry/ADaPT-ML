@@ -365,49 +365,49 @@ def process_climate_tweets():
                     assert p
                     s = [p[s]['phrase'] for s in p]
                     full_processed_txt = ' '.join(s)
-                    if include_by_tokens(
-                            p) and tweet.id not in tweet_id_set and full_processed_txt not in tweet_txt_set:
-                        # roll the dice and see whether to really include the tweet or not:
-                        if choices((True, False), cum_weights=(5, 100))[0]:
-                            # include and embed the tweet
-                            filename = '{}.npy'.format(tweet.id)
-                            tweet_id_set.add(tweet.id)
-                            tweet_txt_set.add(full_processed_txt)
+                    if include_by_tokens(p) and \
+                            tweet.id not in tweet_id_set and \
+                            full_processed_txt not in tweet_txt_set and \
+                            choices((True, False), cum_weights=(5, 100))[0]:
+                        # include and embed the tweet
+                        filename = '{}.npy'.format(tweet.id)
+                        tweet_id_set.add(tweet.id)
+                        tweet_txt_set.add(full_processed_txt)
 
-                            ids.append(tweet.id)
-                            table.append('climate_tweets')
-                            created_at_datetime.append(tweet.created_at_datetime)
-                            screen_name.append(tweet.screen_name)
-                            bio.append(tweet.bio)
-                            txt.append(tweet.user_entered_text)
-                            processed.append(json.dumps(p))
-                            processed_txt.append(full_processed_txt)
-                            me = mpnet_model.encode(s)
-                            me_med = np.median(me, axis=0)
-                            me_avg = np.average(me, axis=0)
-                            mpnet_embeddings_path = os.path.join('/embeddings', 'mpnet', filename)
-                            mpnet_embeddings.append(mpnet_embeddings_path)
-                            mpnet_median_path = os.path.join('/embeddings', 'mpnet_median', filename)
-                            mpnet_median.append(mpnet_median_path)
-                            mpnet_average_path = os.path.join('/embeddings', 'mpnet_average', filename)
-                            mpnet_average.append(mpnet_average_path)
-                            np.save(mpnet_embeddings_path, me)
-                            np.save(mpnet_median_path, me_med)
-                            np.save(mpnet_average_path, me_avg)
-                            te = bertweet_model.encode(s)
-                            te_med = np.median(te, axis=0)
-                            te_avg = np.average(te, axis=0)
-                            bertweet_embeddings_path = os.path.join('/embeddings', 'bertweet', filename)
-                            bertweet_embeddings.append(bertweet_embeddings_path)
-                            bertweet_median_path = os.path.join('/embeddings', 'bertweet_median', filename)
-                            bertweet_median.append(bertweet_median_path)
-                            bertweet_average_path = os.path.join('/embeddings', 'bertweet_average', filename)
-                            bertweet_average.append(bertweet_average_path)
-                            np.save(bertweet_embeddings_path, te)
-                            np.save(bertweet_median_path, te_med)
-                            np.save(bertweet_average_path, te_avg)
+                        ids.append(tweet.id)
+                        table.append('climate_tweets')
+                        created_at_datetime.append(tweet.created_at_datetime)
+                        screen_name.append(tweet.screen_name)
+                        bio.append(tweet.bio)
+                        txt.append(tweet.user_entered_text)
+                        processed.append(json.dumps(p))
+                        processed_txt.append(full_processed_txt)
+                        me = mpnet_model.encode(s)
+                        me_med = np.median(me, axis=0)
+                        me_avg = np.average(me, axis=0)
+                        mpnet_embeddings_path = os.path.join('/embeddings', 'mpnet', filename)
+                        mpnet_embeddings.append(mpnet_embeddings_path)
+                        mpnet_median_path = os.path.join('/embeddings', 'mpnet_median', filename)
+                        mpnet_median.append(mpnet_median_path)
+                        mpnet_average_path = os.path.join('/embeddings', 'mpnet_average', filename)
+                        mpnet_average.append(mpnet_average_path)
+                        np.save(mpnet_embeddings_path, me)
+                        np.save(mpnet_median_path, me_med)
+                        np.save(mpnet_average_path, me_avg)
+                        te = bertweet_model.encode(s)
+                        te_med = np.median(te, axis=0)
+                        te_avg = np.average(te, axis=0)
+                        bertweet_embeddings_path = os.path.join('/embeddings', 'bertweet', filename)
+                        bertweet_embeddings.append(bertweet_embeddings_path)
+                        bertweet_median_path = os.path.join('/embeddings', 'bertweet_median', filename)
+                        bertweet_median.append(bertweet_median_path)
+                        bertweet_average_path = os.path.join('/embeddings', 'bertweet_average', filename)
+                        bertweet_average.append(bertweet_average_path)
+                        np.save(bertweet_embeddings_path, te)
+                        np.save(bertweet_median_path, te_med)
+                        np.save(bertweet_average_path, te_avg)
 
-                            included += 1
+                        included += 1
 
                 if len(ids) == 100:
                     tweets_df = pd.DataFrame({
