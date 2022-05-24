@@ -41,8 +41,9 @@ from tweet_parser.tweet import Tweet
 
 start_time = time.time()
 
-mpnet_model = SentenceTransformer('all-mpnet-base-v2')
-climate_model = SentenceTransformer('GPL/climate-fever-distilbert-tas-b-gpl-self_miner')
+cratedb = 'crate://crate-db:4200'
+mpnet_model = SentenceTransformer('all-mpnet-base-v2', device='cuda')
+bertweet_model = SentenceTransformer('r2d2/stsb-bertweet-base-v0', device='cuda')
 
 rule_poli = re.compile(r'[pP][oO][lL][iI]')
 rule_govt = re.compile(r'[gG][oO][vV][tT]')
@@ -292,7 +293,7 @@ def process_frame_elements():
         "climate change is a global problem and affects everyone"
     ]
     element_mpnet = []
-    element_climate = []
+    element_bertweet = []
 
     frames = {
         "element_id": element_id_list,
@@ -303,20 +304,20 @@ def process_frame_elements():
 
     for row in element_df.itertuples(index=False):
         e_mpnet = mpnet_model.encode(row.element_txt)
-        e_climate = climate_model.encode(row.element_txt)
+        e_bertweet = bertweet_model.encode(row.element_txt)
 
         filename = '{}_{}.npy'.format(row.frame, row.element_id)
         element_mpnet_path = os.path.join('/embeddings', 'element_mpnet', filename)
-        element_climate_path = os.path.join('/embeddings', 'element_climate', filename)
+        element_bertweet_path = os.path.join('/embeddings', 'element_bertweet', filename)
 
         element_mpnet.append(element_mpnet_path)
-        element_climate.append(element_climate_path)
+        element_bertweet.append(element_bertweet_path)
         np.save(element_mpnet_path, e_mpnet)
-        np.save(element_climate_path, e_climate)
+        np.save(element_bertweet_path, e_bertweet)
 
     element_df['element_mpnet'] = element_mpnet
-    element_df['element_climate'] = element_climate
-    element_df.to_sql('frame_elements', 'crate://localhost:4200', if_exists='append', index=False)
+    element_df['element_bertweet'] = element_bertweet
+    element_df.to_sql('frame_elements', cratedb, if_exists='append', index=False)
 
 
 def include_by_tokens(p):
@@ -342,9 +343,9 @@ def process_climate_tweets():
     mpnet_embeddings = []
     mpnet_median = []
     mpnet_average = []
-    climate_embeddings = []
-    climate_median = []
-    climate_average = []
+    bertweet_embeddings = []
+    bertweet_median = []
+    bertweet_average = []
 
     tweet_id_set = set()
     tweet_txt_set = set()
@@ -390,22 +391,22 @@ def process_climate_tweets():
                         np.save(mpnet_embeddings_path, me)
                         np.save(mpnet_median_path, me_med)
                         np.save(mpnet_average_path, me_avg)
-                        ce = climate_model.encode(s)
-                        ce_med = np.median(ce, axis=0)
-                        ce_avg = np.average(ce, axis=0)
-                        climate_embeddings_path = os.path.join('/embeddings', 'climate', filename)
-                        climate_embeddings.append(climate_embeddings_path)
-                        climate_median_path = os.path.join('/embeddings', 'climate_median', filename)
-                        climate_median.append(climate_median_path)
-                        climate_average_path = os.path.join('/embeddings', 'climate_average', filename)
-                        climate_average.append(climate_average_path)
-                        np.save(climate_embeddings_path, ce)
-                        np.save(climate_median_path, ce_med)
-                        np.save(climate_average_path, ce_avg)
+                        te = bertweet_model.encode(s)
+                        te_med = np.median(te, axis=0)
+                        te_avg = np.average(te, axis=0)
+                        bertweet_embeddings_path = os.path.join('/embeddings', 'bertweet', filename)
+                        bertweet_embeddings.append(bertweet_embeddings_path)
+                        bertweet_median_path = os.path.join('/embeddings', 'bertweet_median', filename)
+                        bertweet_median.append(bertweet_median_path)
+                        bertweet_average_path = os.path.join('/embeddings', 'bertweet_average', filename)
+                        bertweet_average.append(bertweet_average_path)
+                        np.save(bertweet_embeddings_path, te)
+                        np.save(bertweet_median_path, te_med)
+                        np.save(bertweet_average_path, te_avg)
 
                         included += 1
 
-                if len(ids) == 50:
+                if len(ids) == 100:
                     tweets_df = pd.DataFrame({
                         'id': ids,
                         'table_name': table,
@@ -418,11 +419,12 @@ def process_climate_tweets():
                         'mpnet': mpnet_embeddings,
                         'mpnet_median': mpnet_median,
                         'mpnet_average': mpnet_average,
-                        'climate': climate_embeddings,
-                        'climate_median': climate_median,
-                        'climate_average': climate_average
+                        'bertweet': bertweet_embeddings,
+                        'bertweet_median': bertweet_median,
+                        'bertweet_average': bertweet_average
                     })
-                    tweets_df.to_sql('climate_tweets', 'crate://localhost:4200', if_exists='append', index=False,
+
+                    tweets_df.to_sql('climate_tweets', cratedb, if_exists='append', index=False,
                                      dtype={'created_at_datetime': DateTime,
                                             'txt_clean_sentences': Object})
                     ids = []
@@ -436,10 +438,13 @@ def process_climate_tweets():
                     mpnet_embeddings = []
                     mpnet_median = []
                     mpnet_average = []
-                    climate_embeddings = []
-                    climate_median = []
-                    climate_average = []
-                    break
+                    bertweet_embeddings = []
+                    bertweet_median = []
+                    bertweet_average = []
+
+                    # break
+
+
 
             except:
                 print("Error: Could not process tweet.")
@@ -459,11 +464,11 @@ def process_climate_tweets():
                 'mpnet': mpnet_embeddings,
                 'mpnet_median': mpnet_median,
                 'mpnet_average': mpnet_average,
-                'climate': climate_embeddings,
-                'climate_median': climate_median,
-                'climate_average': climate_average
+                'bertweet': bertweet_embeddings,
+                'bertweet_median': bertweet_median,
+                'bertweet_average': bertweet_average
             })
-            tweets_df.to_sql('climate_tweets', 'crate://localhost:4200', if_exists='append', index=False,
+            tweets_df.to_sql('climate_tweets', cratedb, if_exists='append', index=False,
                              dtype={'created_at_datetime': DateTime,
                                     'txt_clean_sentences': Object})
 
@@ -471,7 +476,7 @@ def process_climate_tweets():
     print("# tweets excluded: {}".format(excluded))
 
 
-# process_frame_elements()
+process_frame_elements()
 # process_climate_tweets()
 
 end_time = time.time()

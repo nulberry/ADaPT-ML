@@ -24,7 +24,7 @@ RUN apt update \
         libyaml-cpp-dev \
         libyaml-dev
 
-COPY ./requirements-dev.txt .
-RUN pip install requirements-dev.txt
+COPY requirements-dev.txt .
+RUN pip install -r requirements-dev.txt
 
 CMD [ "/bin/bash" ]

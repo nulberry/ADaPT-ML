@@ -27,3 +27,4 @@ tensorflow_hub
 crate
 geojson
 emoji
+seaborn

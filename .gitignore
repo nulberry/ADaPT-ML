@@ -125,8 +125,11 @@ crate/log
 crate/blobs
 crate/repos
 
+# generated files
+figures
+
 # test
-sample.jsonl
+framing-data/sample.jsonl
 example_test.py
 example_data/*
 !example_data/dp/mlruns/multi*.pkl

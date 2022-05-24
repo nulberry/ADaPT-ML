@@ -7,6 +7,7 @@ services:
     ports:
       - "4200:4200"
     networks:
+      - data_network
       - dp_network
       - m_network
       - ls_network
@@ -229,13 +230,26 @@ services:
     profiles:
       - dev
     image: nullberry/framing-data:latest
-    container_name: framing-data
+    container_name: framing-data-processing
+    networks:
+      - data_network
     volumes:
       - ${EMBEDDINGS_PATH}:/embeddings
       - ${TWEETS_PATH}:/tweets
-      - ./process_data.py:/code/process_data.py
+      - ./figures:/figures
+      - ./framing-data/process_data.py:/code/process_data.py
+      - ./framing-data/similarity_heatmap.py:/code/similarity_heatmap.py
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ "gpu" ]
 
 networks:
+  data_network:
+    driver: bridge
   ls_network:
     driver: bridge
   dp_network:
