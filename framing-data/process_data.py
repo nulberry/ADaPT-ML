@@ -97,8 +97,7 @@ def phrase_tokenize(text):
 
 def process_frame_elements():
     frame_list = [
-                     'settled_science'] * 18 + [
-                     'uncertain_science'] * 18 + [
+                     'science'] * 36 + [
                      'political_or_ideological_struggle'] * 11 + [
                      'disaster'] * 18 + [
                      'opportunity'] * 23 + [
@@ -107,7 +106,7 @@ def process_frame_elements():
                      'role_of_science'] * 24 + [
                      'security'] * 15 + [
                      'health'] * 13
-    element_id_list = list(range(18)) + list(range(18)) + list(range(11)) + list(range(18)) + list(range(23)) + \
+    element_id_list = list(range(36)) + list(range(11)) + list(range(18)) + list(range(23)) + \
                       list(range(19)) + list(range(13)) + list(range(24)) + list(range(15)) + list(range(13))
     element_list = [
         # settled science
@@ -409,6 +408,11 @@ def process_climate_tweets():
 
                         included += 1
 
+                    else:
+                        excluded += 1
+                else:
+                    excluded += 1
+
                 if len(ids) == 100:
                     tweets_df = pd.DataFrame({
                         'id': ids,
@@ -445,9 +449,7 @@ def process_climate_tweets():
                     bertweet_median = []
                     bertweet_average = []
 
-                    # break
-
-
+                    break
 
             except:
                 print("Error: Could not process tweet.")
@@ -457,7 +459,6 @@ def process_climate_tweets():
             tweets_df = pd.DataFrame({
                 'id': ids,
                 'table_name': table,
-                # 'split': split,
                 'created_at_datetime': created_at_datetime,
                 'screen_name': screen_name,
                 'bio': bio,
@@ -480,7 +481,7 @@ def process_climate_tweets():
 
 
 process_frame_elements()
-# process_climate_tweets()
+process_climate_tweets()
 
 end_time = time.time()
 print("total time taken: ", end_time - start_time)

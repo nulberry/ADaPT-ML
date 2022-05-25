@@ -9,10 +9,11 @@ dependencies:
 #  - numpy>=1.16.5,<1.20.0
 #  - jupyter==1.0.0
   - torchvision
+  - snorkel
   - kneed
   - pip>19.0
   - pip:
-    - snorkel==0.9.7
+#    - snorkel==0.9.7
     - pyyaml
     - sentence-transformers
     - mlflow

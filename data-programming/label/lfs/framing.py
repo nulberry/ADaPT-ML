@@ -27,7 +27,7 @@ def get_lfs(parsed_args) -> [LabelingFunction]:
     element_lfs = [make_element_lf(
         '{}_{}_{}'.format(row.frame, row.element_id, parsed_args.encoder),
         getattr(row, 'element_{}_e'.format(parsed_args.encoder)),
-        'txt_clean_{}'.format(parsed_args.encoder),
+        parsed_args.encoder,
         FramingLabels[row.frame].value
     )
         for row in frame_elements_df.itertuples(index=False)]
