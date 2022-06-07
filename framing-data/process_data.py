@@ -26,6 +26,7 @@ column 6    visual imagery
 import json
 import os
 import re
+import sys
 import time
 from random import choices
 
@@ -91,7 +92,8 @@ def phrase_tokenize(text):
             phrase = re.sub(pattern[0], pattern[1], phrase)
         tokens = phrase_tokenizer.tokenize(phrase)
         tokens = [token if not emoji.is_emoji(token) else token.strip(':').replace('_', ' ') for token in tokens]
-        all_phrases['sentence_{}'.format(i)] = {'tokens': tokens, 'phrase': ' '.join(tokens)}
+        if tokens:
+            all_phrases['sentence_{}'.format(i)] = {'tokens': tokens, 'phrase': ' '.join(tokens)}
     return all_phrases
 
 
@@ -323,8 +325,7 @@ def process_frame_elements():
 def include_by_tokens(p):
     if 'sentence_5' in p:
         return False
-    for i in range(len(p)):
-        s = 'sentence_{}'.format(i)
+    for s in p:
         token_len = len(p[s]['tokens'])
         if not token_cutoff_dict[s]['min'] <= token_len <= token_cutoff_dict[s]['max']:
             return False
@@ -356,6 +357,7 @@ def process_climate_tweets():
         for line in tqdm(infile):
             try:
                 tweet_dict = json.loads(line)
+                tweet_dict['text'] = tweet_dict['full_text']
                 tweet = Tweet(tweet_dict)
 
                 # check include criteria
@@ -449,10 +451,9 @@ def process_climate_tweets():
                     bertweet_median = []
                     bertweet_average = []
 
-                    break
-
-            except:
+            except Exception as e:
                 print("Error: Could not process tweet.")
+                print(e)
                 excluded += 1
 
         if ids:
@@ -480,7 +481,7 @@ def process_climate_tweets():
     print("# tweets excluded: {}".format(excluded))
 
 
-process_frame_elements()
+# process_frame_elements()
 process_climate_tweets()
 
 end_time = time.time()

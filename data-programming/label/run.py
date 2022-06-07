@@ -18,7 +18,7 @@ def start(registered_model_name, lf_features, dev_annotations_path, get_lfs, cla
         # get the needed information for the pv lfs
         logging.info("Loading unlabeled training data ...")
         try:
-            train_df = pd.read_pickle(parsed_args.train_data).sample(n=10000, ignore_index=True)
+            train_df = pd.read_pickle(parsed_args.train_data)
         except IOError:
             logging.error("Invalid path to data")
             sys.stdout.close()
@@ -29,8 +29,11 @@ def start(registered_model_name, lf_features, dev_annotations_path, get_lfs, cla
             'prec_init': parsed_args.prec_init,
             'seed': parsed_args.seed if parsed_args.seed else None
         }
-        logging.info("Getting information for lfs ...")
-        train_df = procedure.load_lf_info(train_df, lf_features)
+        # logging.info("Getting information for lfs ...")
+        # train_df = procedure.load_lf_info(train_df, lf_features)
+        # procedure.save_df(train_df,
+        #                   '/unlabeled_data/train_lfs_{}.pkl'.format(parsed_args.encoder),
+        #                   '/unlabeled_data/train_lfs_{}.html'.format(parsed_args.encoder))
 
         if parsed_args.dev_data:
             logging.info("Getting development data if available ...")

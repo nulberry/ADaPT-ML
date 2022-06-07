@@ -237,8 +237,7 @@ services:
       - ${EMBEDDINGS_PATH}:/embeddings
       - ${TWEETS_PATH}:/tweets
       - ./figures:/figures
-      - ./framing-data/process_data.py:/code/process_data.py
-      - ./framing-data/similarity_heatmap.py:/code/similarity_heatmap.py
+      - ./framing-data:/code
     stdin_open: true
     tty: true
     deploy:

@@ -127,6 +127,7 @@ crate/repos
 
 # generated files
 figures
+framing-data/train_lfs.pkl
 
 # test
 framing-data/sample.jsonl
